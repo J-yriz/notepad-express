@@ -1,7 +1,7 @@
-import jwt from "jsonwebtoken";
 import { Router } from "express";
 import { prisma } from "../../utility/db/prisma";
 import { IAuthBody } from "../../utility/Types";
+import { encodeFunc } from "../../utility/encodeDecode";
 
 const router = Router();
 
@@ -25,11 +25,11 @@ router.post("/register", async (req, res) => {
 
   if (userDataDB.length) {
     let dataResponse: string[] = [];
-    const usernameExists = userDataDB.some((user) => user.username === body.username);
-    const emailExists = userDataDB.some((user) => user.email === body.email);
+    const usernameExists = userDataDB.some((user) => user.username.toLowerCase() === body.username.toLowerCase());
+    const emailExists = userDataDB.some((user) => user.email.toLowerCase() === body.email.toLowerCase());
 
     if (usernameExists && emailExists) {
-      dataResponse = ["Username", "Email"];
+      dataResponse = ["Username, Email"];
     } else if (usernameExists) {
       dataResponse = ["Username"];
     } else if (emailExists) {
@@ -45,12 +45,17 @@ router.post("/register", async (req, res) => {
   }
 
   try {
+    let password = `PSWU.${body.password}`;
+    for (let x = 1; x <= 3; x++) {
+      password = btoa(password);
+    }
+
     const addUserDB = await prisma.user.create({
       data: {
         username: body.username,
         displayName: body.displayName,
         email: body.email,
-        password: body.password,
+        password: password,
       },
     });
 
@@ -59,11 +64,7 @@ router.post("/register", async (req, res) => {
       displayName: addUserDB.displayName,
     };
 
-    const token = jwt.sign(userObjDB, "secretToken", { expiresIn: "30d" });
-    let bufferToken: string = "";
-    for (let x = 1; x <= 10; x++) {
-      bufferToken = Buffer.from(token).toString("base64");
-    }
+    const bufferToken = encodeFunc(userObjDB);
 
     res.status(201).json({
       success: "User has been registered",

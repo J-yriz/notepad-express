@@ -15,10 +15,6 @@ app.use(express.json());
 const routesPath = path.resolve(__dirname, "routes");
 const routesFolder = fs.readdirSync(routesPath);
 
-app.get("/", (req, res) => {
-  res.json({ cokkie: res.cookie });
-});
-
 (async () => {
   for (const folder of routesFolder) {
     const routeFile = fs.readdirSync(`${routesPath}/${folder}`).filter((file) => file.endsWith(".js"));
