@@ -3,5 +3,5 @@ export interface IAuthBody {
   displayName: string;
   email: string;
   password: string;
-  rememberCheck: string;
+  rememberCheck: boolean;
 }

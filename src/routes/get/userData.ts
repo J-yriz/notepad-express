@@ -6,7 +6,8 @@ const router = Router();
 
 router.get("/userData/:id", async (req, res) => {
   const { id } = req.params;
-  let bufferToken: string = id.replace("==", "");
+  let bufferToken: string = id.replace("SECSEC.", "");
+  bufferToken = bufferToken.replace("==", "");
 
   try {
     for (let x = 1; x <= 5; x++) {
@@ -21,6 +22,8 @@ router.get("/userData/:id", async (req, res) => {
 
     res.status(200).json({
       status: 200,
+      message: "User data",
+      total: 1,
       data: [
         {
           id: Number(userDataDB.id),
@@ -30,9 +33,10 @@ router.get("/userData/:id", async (req, res) => {
       ],
     });
   } catch (error) {
-    res.status(400).json({
-      error: "Token is invalid",
-      status: 400,
+    res.status(401).json({
+      status: 401,
+      message: "Token is invalid",
+      total: 0,
       data: [],
     });
   }

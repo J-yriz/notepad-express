@@ -20,25 +20,29 @@ router.post("/set-general/:id", async (req, res) => {
   userPassword = userPassword.replace("PSWU.", "");
 
   if (userPassword !== body.password) {
-    res.status(400).json({
-      error: "Password is incorrect",
-      status: 400,
+    res.status(401).json({
+      status: 401,
+      message: "Password is incorrect",
+      total: 1,
       data: ["Password"],
     });
     return;
   }
 
+  const dataInputUser = { displayName: userDataDB.displayName, email: userDataDB.email };
+
   if (userDataDB.displayName === body.displayName && userDataDB.email === body.email) {
     res.status(200).json({
-      error: "No changes detected",
       status: 200,
-      data: [{ displayName: userDataDB.displayName, email: userDataDB.email }],
+      message: "No changes detected",
+      total: 1,
+      data: [dataInputUser],
     });
     return;
   }
 
   try {
-    const post = await prisma.user.update({
+    await prisma.user.update({
       where: {
         id: parseInt(id),
       },
@@ -49,16 +53,18 @@ router.post("/set-general/:id", async (req, res) => {
     });
 
     res.status(200).json({
-      success: "General settings updated",
       status: 200,
-      data: [{ displayName: post.displayName, email: post.email }],
+      message: "General settings updated",
+      total: 1,
+      data: [dataInputUser],
     });
     return;
   } catch (error) {
-    res.status(400).json({
-      error: "Failed to update general settings",
-      status: 400,
-      data: [],
+    res.status(500).json({
+      status: 500,
+      message: "Failed to update general settings",
+      total: 1,
+      data: [dataInputUser],
     });
     return;
   }

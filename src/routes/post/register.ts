@@ -10,8 +10,9 @@ router.post("/register", async (req, res) => {
 
   if (!body.username || !body.email || !body.password || !body.displayName) {
     res.status(400).json({
-      error: "Username, DisplayName, Email, and Password is required",
       status: 400,
+      message: "Username, DisplayName, Email, and Password is required",
+      total: 0,
       data: [],
     });
     return;
@@ -29,16 +30,17 @@ router.post("/register", async (req, res) => {
     const emailExists = userDataDB.some((user) => user.email.toLowerCase() === body.email.toLowerCase());
 
     if (usernameExists && emailExists) {
-      dataResponse = ["Username, Email"];
+      dataResponse = ["Username", "Email"];
     } else if (usernameExists) {
       dataResponse = ["Username"];
     } else if (emailExists) {
       dataResponse = ["Email"];
     }
 
-    res.status(400).json({
-      error: "Data already exists",
-      status: 400,
+    res.status(409).json({
+      status: 409,
+      message: "Data already exists",
+      total: dataResponse.length,
       data: dataResponse,
     });
     return;
@@ -67,15 +69,21 @@ router.post("/register", async (req, res) => {
     const bufferToken = encodeFunc(userObjDB);
 
     res.status(201).json({
-      success: "User has been registered",
       status: 201,
-      data: [bufferToken],
+      message: "User has been registered",
+      total: 1,
+      data: [
+        {
+          cookies: bufferToken,
+        },
+      ],
     });
   } catch (error) {
     console.log(error);
     res.status(500).json({
-      error: "Internal Server Error",
       status: 500,
+      message: "Internal Server Error",
+      total: 0,
       data: [],
     });
   }

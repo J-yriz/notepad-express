@@ -8,7 +8,7 @@ const encodeFunc = (userObjDB: { email: string; displayName: string }): string =
     bufferToken = btoa(bufferToken);
   }
 
-  return `${bufferToken}==`;
+  return `SECSEC.${bufferToken}==`;
 };
 
 export { encodeFunc };

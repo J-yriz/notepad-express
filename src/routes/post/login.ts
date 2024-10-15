@@ -10,8 +10,9 @@ router.post("/login", async (req, res) => {
 
   if (!body.email || !body.password) {
     res.status(400).json({
-      error: "Email and Password is required",
       status: 400,
+      message: "Email and Password is required",
+      total: 2,
       data: ["Email", "Password"],
     });
     return;
@@ -24,9 +25,10 @@ router.post("/login", async (req, res) => {
   });
 
   if (!userDataDB.length) {
-    res.status(400).json({
-      error: "Email not found",
-      status: 400,
+    res.status(404).json({
+      status: 404,
+      message: "Email not found",
+      total: userDataDB.length,
       data: [],
     });
     return;
@@ -39,23 +41,17 @@ router.post("/login", async (req, res) => {
   userPassword = userPassword.replace("PSWU.", "");
 
   if (userPassword !== body.password) {
-    res.status(400).json({
-      error: "Password is incorrect",
-      status: 400,
-      data: [],
+    res.status(401).json({
+      status: 401,
+      message: "Password is incorrect",
+      total: userDataDB.length,
+      data: [
+        {
+          email: body.email,
+        },
+      ],
     });
     return;
-  }
-
-  if (body.rememberCheck) {
-    await prisma.user.update({
-      where: {
-        email: body.email,
-      },
-      data: {
-        password_remember: body.rememberCheck,
-      },
-    });
   }
 
   const userObjDB = {
@@ -65,11 +61,52 @@ router.post("/login", async (req, res) => {
 
   const bufferToken = encodeFunc(userObjDB);
 
+  if (body.rememberCheck) {
+    const refreshToken = generateRandomText(15);
+    await prisma.user.update({
+      where: {
+        email: body.email,
+      },
+      data: {
+        password_remember: refreshToken,
+      },
+    });
+
+    res.status(200).json({
+      status: 200,
+      message: "Login successful",
+      total: userDataDB.length,
+      data: [
+        {
+          cookies: bufferToken,
+          rememberToken: refreshToken,
+        },
+      ],
+    });
+    return;
+  }
+
   res.status(200).json({
-    success: "Login Success",
     status: 200,
-    data: [bufferToken],
+    message: "Login successful",
+    total: userDataDB.length,
+    data: [
+      {
+        cookies: bufferToken,
+      },
+    ],
   });
+  return;
 });
 
 export default router;
+
+function generateRandomText(length: number) {
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    result += characters[randomIndex];
+  }
+  return result;
+}
