@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../../utility/db/prisma";
 import { IAuthBody } from "../../utility/Types";
-import { encodeFunc } from "../../utility/encodeDecode";
+import { encodeFunc, verifyPassword } from "../../utility/Function";
 
 const router = Router();
 
@@ -34,13 +34,9 @@ router.post("/login", async (req, res) => {
     return;
   }
 
-  let userPassword = userDataDB[0].password;
-  for (let x = 1; x <= 3; x++) {
-    userPassword = atob(userPassword);
-  }
-  userPassword = userPassword.replace("PSWU.", "");
+  const passwordValid = await verifyPassword(body.password, userDataDB[0].password);
 
-  if (userPassword !== body.password) {
+  if (!passwordValid) {
     res.status(401).json({
       status: 401,
       message: "Password is incorrect",
@@ -62,7 +58,10 @@ router.post("/login", async (req, res) => {
   const bufferToken = encodeFunc(userObjDB);
 
   if (body.rememberCheck) {
-    const refreshToken = generateRandomText(15);
+    let refreshToken = generateRandomText(15);
+
+    if (userDataDB[0].password_remember) refreshToken = userDataDB[0].password_remember;
+
     await prisma.user.update({
       where: {
         email: body.email,
