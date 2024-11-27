@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../../utility/db/prisma";
+import { verifyPassword } from "../../utility/Function";
 
 const router = Router();
 
@@ -13,13 +14,19 @@ router.post("/set-general/:id", async (req, res) => {
     },
   });
 
-  let userPassword = userDataDB.password;
-  for (let x = 1; x <= 3; x++) {
-    userPassword = atob(userPassword);
+  if (!userDataDB) {
+    res.status(404).json({
+      status: 404,
+      message: "User not found",
+      total: 0,
+      data: [],
+    });
+    return;
   }
-  userPassword = userPassword.replace("PSWU.", "");
 
-  if (userPassword !== body.password) {
+  const passwordValid = await verifyPassword(body.password, userDataDB.password);
+
+  if (!passwordValid) {
     res.status(401).json({
       status: 401,
       message: "Password is incorrect",

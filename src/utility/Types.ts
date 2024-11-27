@@ -5,3 +5,9 @@ export interface IAuthBody {
   password: string;
   rememberCheck: boolean;
 }
+
+export interface IChangePassword {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}

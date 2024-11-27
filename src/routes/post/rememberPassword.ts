@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../../utility/db/prisma";
-import { encodeFunc } from "../../utility/encodeDecode";
+import { encodeFunc } from "../../utility/Function";
 
 const router = Router();
 
@@ -44,6 +44,14 @@ router.post("/remember-password/:id", async (req, res) => {
     });
     return;
   }
+
+  res.status(400).json({
+    status: 400,
+    message: "Password remember failed",
+    total: 0,
+    data: [],
+  });
+  return;
 });
 
 export default router;

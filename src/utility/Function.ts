@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 
 const encodeFunc = (userObjDB: { email: string; displayName: string }): string => {
   const token = jwt.sign(userObjDB, "secretToken", { expiresIn: "1h" });
@@ -11,4 +12,13 @@ const encodeFunc = (userObjDB: { email: string; displayName: string }): string =
   return `SECSEC.${bufferToken}==`;
 };
 
-export { encodeFunc };
+const hashPassword = async (password: string) => {
+  const salt = await bcrypt.genSalt(15);
+  return await bcrypt.hash(password, salt);
+}
+
+const verifyPassword = async (password: string, hash: string) => {
+  return await bcrypt.compare(password, hash);
+};
+
+export { encodeFunc, hashPassword, verifyPassword };

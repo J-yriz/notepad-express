@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../../utility/db/prisma";
 import { IAuthBody } from "../../utility/Types";
-import { encodeFunc } from "../../utility/encodeDecode";
+import { encodeFunc, hashPassword } from "../../utility/Function";
 
 const router = Router();
 
@@ -47,17 +47,12 @@ router.post("/register", async (req, res) => {
   }
 
   try {
-    let password = `PSWU.${body.password}`;
-    for (let x = 1; x <= 3; x++) {
-      password = btoa(password);
-    }
-
     const addUserDB = await prisma.user.create({
       data: {
         username: body.username,
         displayName: body.displayName,
         email: body.email,
-        password: password,
+        password: await hashPassword(body.password),
       },
     });
 
